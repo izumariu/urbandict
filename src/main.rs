@@ -22,7 +22,10 @@ fn main() {
 
     match find_word(&query) {
 
-        Some(expl) => print_with_readability(&query, &expl),
+        Some(expl) => {
+            //eprintln!("{:?}", expl);
+            print_with_readability(&query, &expl)
+        },
 
         None => {
             eprintln!("Sorry, we couldn't find '{}' {}", query, r"¯\_(ツ)_/¯");
@@ -85,9 +88,21 @@ fn get_query() -> Option<String> {
 
 }
 
+fn urlencode(arg: &str) -> String {
+    let mut out = String::new();
+    for val in arg.bytes() {
+        if val >= 16 {
+            out.push_str(&format!("%{:x}", val));
+        } else {
+            out.push_str(&format!("%0{:x}", val));
+        }
+    }
+    out
+}
+
 fn find_word(word: &str) -> Option<String> {
 
-    let response = match reqwest::get(&format!("https://www.urbandictionary.com/define.php?term={}",word)) {
+    let response = match reqwest::get(&format!("https://www.urbandictionary.com/define.php?term={}", urlencode(&word))) {
 
         Ok(mut resp) => {
 
