@@ -2,6 +2,6 @@
 	cargo build --release
 
 clean:
-	rm -vf ./target/release/urbandict*
+	rm -rfv target/ Cargo.lock
 
 .PHONY: clean

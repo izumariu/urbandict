@@ -1,34 +1,55 @@
 extern crate reqwest;
 extern crate regex;
+extern crate clap;
 
 use regex::Regex;
 
-const LINE_CHAR_LIMIT: i32 = 85;
+const LINE_CHAR_LIMIT: i32 = 75;
 
 use std::{env, process};
+use clap::{Arg, App};
 
 fn main() {
 
-    let query = match get_query() {
-        Some(q) => q,
-        None => {
-            let exe = env::args().nth(0).unwrap();
-            eprintln!("USAGE: {} [QUERY]", exe);
-            process::exit(1);
-        },
-    };
+    let cfg = App::new("urbandict")
+                    .version("1.1")
+                    .author("izumariu")
+                    .about("Look up cool slang words in the terminal!")
+                    .arg(Arg::with_name("entries")
+                        .short("n")
+                        .long("entries")
+                        .value_name("N")
+                        .help("Show N entries maximum. NOT IMPLEMENTED YET!") //TODO!!!
+                        .required(false)
+                    )
+                    .arg(Arg::with_name("word")
+                        //.short("q")
+                        //.long("query")
+                        .value_name("WORD")
+                        .help("Term to look up")
+                        .required(true)
+                        .index(1)
+                    )
+                    /*
+                    .arg(Arg::with_name("word_of_the_day") // TODO
+                        .help("Look up the word of the day. Will nullify all other arguments.")
+                    )*/
+                    .get_matches();
 
-    eprintln!("Searching for '{}'", query);
 
-    match find_word(&query) {
+
+    let word = cfg.value_of("word").unwrap();
+
+    eprintln!("Searching for '{}'", word);
+
+    match find_word(&cfg) {
 
         Some(expl) => {
-            //eprintln!("{:?}", expl);
-            print_with_readability(&query, &expl)
+            print_with_readability( Explanation { word: String::from(word) , expl: String::from(expl) } )
         },
 
         None => {
-            eprintln!("Sorry, we couldn't find '{}' {}", query, r"¯\_(ツ)_/¯");
+            eprintln!("Sorry, we couldn't find '{}' {}", word, r"¯\_(ツ)_/¯");
             process::exit(1);
         },
 
@@ -36,7 +57,16 @@ fn main() {
 
 }
 
-fn print_with_readability(word: &str, expl: &str) {
+
+struct Explanation {
+    word: String,
+    expl: String,
+}
+
+fn print_with_readability(cfg: Explanation) {
+
+    let word = cfg.word;
+    let expl = cfg.expl;
 
     let mut header = String::from("\n");
 
@@ -78,16 +108,6 @@ fn xmlesc(text: &str) -> String {
     out
 }
 
-fn get_query() -> Option<String> {
-
-    if let Some(arg) = env::args().nth(1) {
-        return Some(arg.to_string());
-    }
-
-    None
-
-}
-
 fn urlencode(arg: &str) -> String {
     let mut out = String::new();
     for val in arg.bytes() {
@@ -100,7 +120,9 @@ fn urlencode(arg: &str) -> String {
     out
 }
 
-fn find_word(word: &str) -> Option<String> {
+fn find_word(cfg: &clap::ArgMatches) -> Option<String> {
+
+    let word = cfg.value_of("word").unwrap();
 
     let response = match reqwest::get(&format!("https://www.urbandictionary.com/define.php?term={}", urlencode(&word))) {
 
