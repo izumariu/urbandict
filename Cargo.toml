@@ -2,8 +2,11 @@
 name = "urbandict"
 version = "1.1.0"
 authors = ["izumariu"]
+repository = "https://github.com/izumariu/urbandict"
+license = "MIT"
 
 [dependencies]
 reqwest = "0.8"
 regex = "1"
 clap = "2.32.0"
+

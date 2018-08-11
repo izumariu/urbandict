@@ -6,7 +6,7 @@ use regex::Regex;
 
 const LINE_CHAR_LIMIT: i32 = 75;
 
-use std::{env, process};
+use std::process;
 use clap::{Arg, App};
 
 fn main() {
